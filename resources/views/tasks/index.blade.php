@@ -15,6 +15,8 @@
         
 <form action="/tasks/{{ $task->id }}" method="POST">
     @csrf
+    <!-- <input type="text" value="token> -->
+
     @method('DELETE')
 
     <button type="submit">

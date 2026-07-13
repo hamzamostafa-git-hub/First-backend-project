@@ -23,6 +23,7 @@ public function create()
 
 public function store(Request $request)
 {
+
     $request->validate([
     'title' => 'required|max:255',
 ]);
@@ -35,24 +36,42 @@ public function store(Request $request)
 return redirect('/tasks');
 }
 
+//model binding
+// public function edit(Task $task)
+// {
+//     return view('tasks.edit', compact ('task'));
+    // return view('tasks.edit', ['task' => $task]);
 
-public function edit(Task $task)
+// }
+
+//id
+public function edit(int $id)
 {
+
+    $task =  Task::find($id);
     return view('tasks.edit', compact ('task'));
+    // return view('tasks.edit', ['task' => $task]);
 }
 
 
-public function update(Request $request, Task $task)
+// public function update(Request $request, Task $task)
+// {
+//     $task->update($request->only('title'));
+//     return redirect('/tasks');
+// }
+
+public function update(Request $request, int $id)
 {
+    $task = Task::find($id);
     $task->update($request->only('title'));
     return redirect('/tasks');
 }
 
 public function destroy(Task $task) 
   { $task->delete();
+
     return redirect('/tasks');
   } 
-
 
 }
 
