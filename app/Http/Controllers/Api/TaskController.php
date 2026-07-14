@@ -3,50 +3,55 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreTaskRequest;
+use App\Http\Requests\UpdateTaskRequest;
 use App\Models\Task;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
-    public function index()
+    public function index(Request $request): JsonResponse
     {
-        $tasks = Task::all();
+        $user = $request->user();
+
+        $tasks = $user->is_admin
+            ? Task::all()
+            : Task::where('user_id', $user->id)->get();
 
         return response()->json($tasks);
     }
 
-    // no create() needed — that was for showing an HTML form,
-    // which the frontend (React) handles now, not Laravel
-
-    public function store(Request $request)
+    public function store(StoreTaskRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'title' => 'required|max:255',
+        $task = Task::create([
+            ...$request->validated(),
+            'user_id' => $request->user()->id,
         ]);
-
-        $task = Task::create($validated);
 
         return response()->json($task, 201);
     }
 
-    public function show(Task $task)
+    public function show(Task $task): JsonResponse
     {
-        return response()->json($task);
-    }
-
-    public function update(Request $request, Task $task)
-    {
-        $validated = $request->validate([
-            'title' => 'required|max:255',
-        ]);
-
-        $task->update($validated);
+        $this->authorize('view', $task);
 
         return response()->json($task);
     }
 
-    public function destroy(Task $task)
+    public function update(UpdateTaskRequest $request, Task $task): JsonResponse
     {
+        $this->authorize('update', $task);
+
+        $task->update($request->validated());
+
+        return response()->json($task->fresh());
+    }
+
+    public function destroy(Task $task): JsonResponse
+    {
+        $this->authorize('delete', $task);
+
         $task->delete();
 
         return response()->json(null, 204);
